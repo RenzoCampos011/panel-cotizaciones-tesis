@@ -3,7 +3,7 @@ from supabase import create_client, Client
 import pandas as pd
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURACIÓN DE LA PÁGINA (Debe ser la primera línea de Streamlit)
+# 1. CONFIGURACIÓN DE LA PÁGINA 
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Dashboard Gerencial B2B | Evaluación IA", 
@@ -12,11 +12,10 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. CONEXIÓN A LA BASE DE DATOS (Supabase)
+# 2. CONEXIÓN A SUPABASE (Bóveda Secreta - Nivel Producción)
 # -----------------------------------------------------------------------------
-# Reemplaza esto con tus credenciales reales
-SUPABASE_URL = "TU_URL_DE_SUPABASE"
-SUPABASE_KEY = "TU_API_KEY"
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 @st.cache_resource
 def init_connection():
@@ -26,7 +25,6 @@ supabase: Client = init_connection()
 
 @st.cache_data(ttl=60) # Refresca los datos cada minuto
 def load_data():
-    # Asegúrate de que tu tabla se llame así en Supabase
     response = supabase.table("cotizaciones_prueba").select("*").execute()
     return pd.DataFrame(response.data)
 
@@ -49,11 +47,11 @@ try:
         # Limpiamos los datos para el gráfico (asegurar que el precio sea número)
         df['precio_total'] = pd.to_numeric(df['precio_total'], errors='coerce')
         
-        # Gráfico de barras simple y elegante
+        # Gráfico de barras
         st.bar_chart(data=df, x='proveedor', y='precio_total', use_container_width=True)
         st.divider()
 
-        # --- SECCIÓN B: ANÁLISIS A PROFUNDIDAD (EL VALOR DE TU TESIS) ---
+        # --- SECCIÓN B: ANÁLISIS A PROFUNDIDAD ---
         st.subheader("🔍 Análisis Detallado por Proveedor")
         st.markdown("Seleccione un proveedor para ver el contraste entre los datos extraídos y la evaluación de la IA.")
         
@@ -74,7 +72,6 @@ try:
             st.markdown("### 📄 Datos Objetivos (Realidad)")
             st.info("Información factual extraída del documento original por los Agentes 1, 2 y 3.")
             
-            # Usamos un contenedor visual para que se vea ordenado
             with st.container(border=True):
                 st.markdown(f"**🏢 Empresa:** {datos_prov.get('proveedor', 'N/A')}")
                 st.markdown(f"**🆔 RUC:** {datos_prov.get('ruc', 'N/A')}")
@@ -112,7 +109,7 @@ try:
                 st.markdown("**Resumen Gerencial del Auditor IA:**")
                 st.write(datos_prov.get('resumen_ia', 'El Agente 4 no generó un resumen para esta cotización.'))
 
-        # --- SECCIÓN C: AUDITORÍA (Opcional pero genial para tesis) ---
+        # --- SECCIÓN C: AUDITORÍA ---
         st.divider()
         with st.expander("Ver Base de Datos Completa (Modo Auditoría)"):
             st.dataframe(df, use_container_width=True)
