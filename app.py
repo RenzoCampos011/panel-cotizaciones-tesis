@@ -1,19 +1,12 @@
 import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
+import plotly.express as px
 
-# -----------------------------------------------------------------------------
-# 1. CONFIGURACIÓN DE LA PÁGINA 
-# -----------------------------------------------------------------------------
-st.set_page_config(
-    page_title="Dashboard Gerencial B2B | Evaluación IA", 
-    page_icon="🏢", 
-    layout="wide"
-)
+# 1. CONFIGURACIÓN DE LA PÁGINA
+st.set_page_config(page_title="Comité de Compras IA", page_icon="👔", layout="wide")
 
-# -----------------------------------------------------------------------------
-# 2. CONEXIÓN A SUPABASE (Bóveda Secreta - Nivel Producción)
-# -----------------------------------------------------------------------------
+# 2. CONEXIÓN A SUPABASE
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
@@ -23,97 +16,124 @@ def init_connection():
 
 supabase: Client = init_connection()
 
-@st.cache_data(ttl=60) # Refresca los datos cada minuto
+@st.cache_data(ttl=60)
 def load_data():
     response = supabase.table("cotizaciones_prueba").select("*").execute()
-    return pd.DataFrame(response.data)
+    df = pd.DataFrame(response.data)
+    if 'proyecto' not in df.columns:
+        df['proyecto'] = "General"
+    else:
+        df['proyecto'] = df['proyecto'].fillna("General")
+    return df
 
-# -----------------------------------------------------------------------------
-# 3. INTERFAZ VISUAL: EL DASHBOARD B2B
-# -----------------------------------------------------------------------------
-st.title("📊 Sistema Orquestador B2B: Evaluación de Proveedores")
-st.markdown("Plataforma de apoyo a la decisión con análisis Multi-Agente IA.")
+# 3. INTERFAZ: EL COMITÉ VIRTUAL
+st.title("👔 Comité de Compras Virtual: Multi-Agente IA")
+st.markdown("Análisis competitivo y recomendación gerencial impulsada por agentes autónomos.")
 st.divider()
 
 try:
-    df = load_data()
+    df_completo = load_data()
     
-    if df.empty:
-        st.warning("⚠️ No hay datos en la base de datos. Ejecuta tu flujo en n8n primero.")
-    else:
-        # --- SECCIÓN A: COMPARATIVA GLOBAL ---
-        st.subheader("📈 Visión Global: Comparativa de Precios")
-        
-        # Limpiamos los datos para el gráfico (asegurar que el precio sea número)
-        df['precio_total'] = pd.to_numeric(df['precio_total'], errors='coerce')
-        
-        # Gráfico de barras
-        st.bar_chart(data=df, x='proveedor', y='precio_total', use_container_width=True)
-        st.divider()
+    if df_completo.empty:
+        st.warning("⚠️ No hay datos en la base de datos.")
+        st.stop()
 
-        # --- SECCIÓN B: ANÁLISIS A PROFUNDIDAD ---
-        st.subheader("🔍 Análisis Detallado por Proveedor")
-        st.markdown("Seleccione un proveedor para ver el contraste entre los datos extraídos y la evaluación de la IA.")
+    # --- BARRA LATERAL: PROYECTO ---
+    st.sidebar.header("📂 Gestión de Proyectos")
+    lista_proyectos = df_completo['proyecto'].unique()
+    proyecto_elegido = st.sidebar.selectbox("Seleccione la Licitación:", lista_proyectos)
+    
+    df = df_completo[df_completo['proyecto'] == proyecto_elegido].copy()
+    
+    # Limpieza de datos numéricos para los gráficos
+    df['precio_total'] = pd.to_numeric(df['precio_total'], errors='coerce')
+    df['puntaje_ia'] = pd.to_numeric(df['puntaje_ia'], errors='coerce')
+
+    # =========================================================================
+    # FASE 1: VISIÓN GERENCIAL (GRÁFICOS DE IMPACTO)
+    # =========================================================================
+    st.subheader("📊 Resumen Competitivo del Proyecto")
+    
+    col_graf1, col_graf2 = st.columns(2)
+    
+    with col_graf1:
+        # Gráfico 1: Comparativa de Precios (El dolor de bolsillo)
+        fig_precio = px.bar(
+            df, x='proveedor', y='precio_total', 
+            text='precio_total',
+            title="Comparativa de Oferta Económica (Menor es mejor)",
+            color='precio_total', color_continuous_scale='Blues'
+        )
+        fig_precio.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+        st.plotly_chart(fig_precio, use_container_width=True)
+
+    with col_graf2:
+        # Gráfico 2: Score de la IA vs Riesgo
+        fig_score = px.scatter(
+            df, x='proveedor', y='puntaje_ia', 
+            size='puntaje_ia', color='nivel_riesgo',
+            title="Score de Confiabilidad B2B vs Nivel de Riesgo",
+            color_discrete_map={"Bajo": "#00CC96", "Medio": "#FFA15A", "Alto": "#EF553B"},
+            size_max=40
+        )
+        st.plotly_chart(fig_score, use_container_width=True)
+
+    st.divider()
+
+    # =========================================================================
+    # FASE 2: EL ANÁLISIS DE LOS AGENTES (LOS PROFESIONALES)
+    # =========================================================================
+    st.subheader("🕵️‍♂️ Revisión del Comité (Detalle por Proveedor)")
+    
+    lista_proveedores = df['proveedor'].dropna().unique()
+    proveedor_elegido = st.selectbox("Seleccione el Proveedor para ver el desglose:", lista_proveedores)
+    datos_prov = df[df['proveedor'] == proveedor_elegido].iloc[0]
+
+    # Usamos Pestañas para simular los roles de la empresa
+    tab1, tab2, tab3 = st.tabs(["💰 Agente 1: Analista Financiero", "🤝 Agente 2: Gerente Comercial", "⚖️ Agente 3: Asesor Legal"])
+    
+    with tab1:
+        st.info("**Misión del Agente:** Extraer y validar la información fiscal y los montos ofertados.")
+        col_f1, col_f2 = st.columns(2)
+        col_f1.metric("Empresa / Proveedor", str(datos_prov.get('proveedor', 'N/A')))
+        col_f1.metric("RUC Validado", str(datos_prov.get('ruc', 'N/A')))
+        col_f2.metric("Monto Total", f"{datos_prov.get('moneda', '')} {datos_prov.get('precio_total', 0)}")
+        col_f2.metric("Fecha de Emisión", str(datos_prov.get('fecha', 'N/A')))
+
+    with tab2:
+        st.info("**Misión del Agente:** Analizar las condiciones logísticas y el trato comercial.")
+        st.markdown(f"**💳 Condición de Pago exigida:** {datos_prov.get('condicion_pago', 'N/A')}")
+        st.markdown(f"**⏱️ Tiempo de Entrega prometido:** {datos_prov.get('tiempo_entrega', 'N/A')}")
+        st.markdown(f"**🛡️ Garantía cubierta:** {datos_prov.get('garantia', 'N/A')}")
+
+    with tab3:
+        st.info("**Misión del Agente:** Proteger a la empresa evaluando la vigencia y penalidades.")
+        st.markdown(f"**📅 Validez de la Oferta:** {datos_prov.get('validez_oferta', 'N/A')}")
+        st.markdown(f"**⚖️ Cláusula de Penalidades por Retraso:** {datos_prov.get('penalidades_retraso', 'N/A')}")
+
+    st.markdown("<br>", unsafe_allow_html=True) # Espacio en blanco
+
+    # =========================================================================
+    # FASE 3: LA RECOMENDACIÓN FINAL DEL AUDITOR IA
+    # =========================================================================
+    st.subheader("🧠 Veredicto Final: Agente Auditor (IA)")
+    
+    # Un contenedor con borde destacado para la recomendación final
+    with st.container(border=True):
+        col_a1, col_a2 = st.columns([1, 3]) # Columna 2 es más ancha
         
-        # Selector de proveedor
-        lista_proveedores = df['proveedor'].dropna().unique()
-        proveedor_elegido = st.selectbox("Seleccione el Proveedor a evaluar:", lista_proveedores)
-        
-        # Filtramos la fila del proveedor seleccionado
-        datos_prov = df[df['proveedor'] == proveedor_elegido].iloc[0]
-        
-        # ¡LA MAGIA DE LA DIVISIÓN DE PANTALLA!
-        col1, col2 = st.columns(2)
-        
-        # ---------------------------------------------------------
-        # COLUMNA 1: LOS DATOS OBJETIVOS (La Realidad)
-        # ---------------------------------------------------------
-        with col1:
-            st.markdown("### 📄 Datos Objetivos (Realidad)")
-            st.info("Información factual extraída del documento original por los Agentes 1, 2 y 3.")
+        with col_a1:
+            score = datos_prov.get('puntaje_ia', 0)
+            st.metric(label="Score Final", value=f"{score} / 100")
             
-            with st.container(border=True):
-                st.markdown(f"**🏢 Empresa:** {datos_prov.get('proveedor', 'N/A')}")
-                st.markdown(f"**🆔 RUC:** {datos_prov.get('ruc', 'N/A')}")
-                st.markdown(f"**💰 Monto Ofertado:** {datos_prov.get('moneda', '')} {datos_prov.get('precio_total', 'N/A')}")
-                st.markdown(f"**💳 Condición de Pago:** {datos_prov.get('condicion_pago', 'N/A')}")
-                st.markdown(f"**⏱️ Tiempo de Entrega:** {datos_prov.get('tiempo_entrega', 'N/A')}")
-                st.markdown(f"**🛡️ Garantía:** {datos_prov.get('garantia', 'N/A')}")
-                st.markdown(f"**⚖️ Penalidades:** {datos_prov.get('penalidades_retraso', 'N/A')}")
-                st.markdown(f"**📅 Validez de Oferta:** {datos_prov.get('validez_oferta', 'N/A')}")
-
-        # ---------------------------------------------------------
-        # COLUMNA 2: LA RECOMENDACIÓN IA (El Copiloto)
-        # ---------------------------------------------------------
-        with col2:
-            st.markdown("### 🤖 Evaluación Multi-Agente IA")
-            st.warning("Análisis de riesgo y scoring generado por el Motor B2B y el Agente Auditor.")
+            riesgo = str(datos_prov.get('nivel_riesgo', 'Desconocido'))
+            if riesgo.lower() == "bajo": st.success(f"Riesgo: 🟢 {riesgo}")
+            elif riesgo.lower() == "medio": st.warning(f"Riesgo: 🟡 {riesgo}")
+            else: st.error(f"Riesgo: 🔴 {riesgo}")
             
-            with st.container(border=True):
-                # 1. El Puntaje Gigante
-                score = datos_prov.get('puntaje_ia', 0)
-                st.metric(label="Score de Confiabilidad B2B", value=f"{score} / 100")
-                
-                # 2. El Semáforo de Riesgo
-                riesgo = datos_prov.get('nivel_riesgo', 'Desconocido')
-                if riesgo == "Bajo":
-                    st.success(f"**Nivel de Riesgo:** 🟢 {riesgo}")
-                elif riesgo == "Medio":
-                    st.warning(f"**Nivel de Riesgo:** 🟡 {riesgo}")
-                else:
-                    st.error(f"**Nivel de Riesgo:** 🔴 {riesgo}")
-                
-                st.markdown("---")
-                
-                # 3. El Veredicto del Agente 4
-                st.markdown("**Resumen Gerencial del Auditor IA:**")
-                st.write(datos_prov.get('resumen_ia', 'El Agente 4 no generó un resumen para esta cotización.'))
-
-        # --- SECCIÓN C: AUDITORÍA ---
-        st.divider()
-        with st.expander("Ver Base de Datos Completa (Modo Auditoría)"):
-            st.dataframe(df, use_container_width=True)
+        with col_a2:
+            st.markdown("### Recomendación Directa al Gerente:")
+            st.write(datos_prov.get('resumen_ia', 'El Agente 4 no generó un resumen para esta cotización.'))
 
 except Exception as e:
-    st.error(f"Error crítico al conectar con la base de datos: {e}")
-    st.stop()
+    st.error(f"Error en la visualización: {e}")
