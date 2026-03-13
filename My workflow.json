@@ -1,0 +1,713 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloud.llamaindex.ai/api/parsing/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer llx-7XRvPOQ6yx0KMt9wRDzu2p2sANnGWAWqAu40PQmp6xGmslnr"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "attachment_0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        288,
+        160
+      ],
+      "id": "b67af62b-e298-42ae-a7ec-6378a84f154d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        160
+      ],
+      "id": "ac3ed53e-50db-4808-8765-eabe3ec12dc0",
+      "name": "Wait",
+      "webhookId": "127e6a79-49a9-49ef-bbf0-968d87286afd"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.cloud.llamaindex.ai/api/parsing/job/{{$json.id}}/result/markdown",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer llx-7XRvPOQ6yx0KMt9wRDzu2p2sANnGWAWqAu40PQmp6xGmslnr"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        160
+      ],
+      "id": "1de001f2-d41f-42c4-a3f8-3846fc4f4011",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "tableId": "cotizaciones_prueba",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "proveedor",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.proveedor }}"
+            },
+            {
+              "fieldId": "ruc",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.ruc }}"
+            },
+            {
+              "fieldId": "fecha",
+              "fieldValue": "={{ $('Merge').item.json.fecha }}"
+            },
+            {
+              "fieldId": "moneda",
+              "fieldValue": "={{ $('Merge').item.json.moneda }}"
+            },
+            {
+              "fieldId": "precio_total",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.precio_total }}"
+            },
+            {
+              "fieldId": "condicion_pago",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.condicion_pago }}"
+            },
+            {
+              "fieldId": "tiempo_entrega",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.tiempo_entrega }}"
+            },
+            {
+              "fieldId": "garantia",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.garantia }}"
+            },
+            {
+              "fieldId": "validez_oferta",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.validez_oferta }}"
+            },
+            {
+              "fieldId": "penalidades_retraso",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.penalidades_retraso }}"
+            },
+            {
+              "fieldId": "puntaje_ia",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.puntaje_ia }}"
+            },
+            {
+              "fieldId": "nivel_riesgo",
+              "fieldValue": "={{ $('Code in JavaScript1').item.json.nivel_riesgo }}"
+            },
+            {
+              "fieldId": "resumen_ia",
+              "fieldValue": "={{ $json.output }}"
+            },
+            {
+              "fieldId": "proyecto",
+              "fieldValue": "={{ $json.text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        208
+      ],
+      "id": "73820ffc-d4c0-43db-a545-3f4e5aba82fa",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "tkUxthKtksqyJJF1",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "has:attachment is:unread"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        80
+      ],
+      "id": "78730eb5-cf4d-46c0-9292-52367098249c",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YVESHznqLWTDMSZN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "attachment_0",
+        "name": "={{ $json.from.value[0].address }} {{ $json.headers.date }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1kbWAtj2nofXc177iCH9clik5-xsw_I7G",
+          "mode": "list",
+          "cachedResultName": "Cotizaciones Recibidas",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1kbWAtj2nofXc177iCH9clik5-xsw_I7G"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        288,
+        0
+      ],
+      "id": "5c1377d5-968b-4029-bf7e-37fd6a32c63d",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "TmkyhjWbvO9ikNIi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un extractor de datos profesional. Tu objetivo es convertir el siguiente texto Markdown en un objeto JSON limpio.\n\nReglas:\n\n1. Extrae: 'proveedor', 'ruc', 'fecha', 'precio_total' y 'moneda'.\n\n2. Si un dato no existe, pon 'N/A'.\n\n3. Devuelve SOLAMENTE el JSON, sin texto explicativo.\n\n4. Extrae la fecha de emisión del documento y conviértela ESTRICTAMENTE al formato YYYY-MM-DD. Por ejemplo: si el documento dice '12 de Marzo de 2026', debes devolver '2026-03-12'. No incluyas palabras.\n\nTexto a procesar:\n{{ $json.markdown }}",
+        "options": {
+          "systemMessage": "Eres un experto contable que solo responde con datos reales encontrados en el texto. Si un dato no existe, respondes null"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        160
+      ],
+      "id": "daaefda8-4532-4507-9e02-5607eb61f605",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        848,
+        352
+      ],
+      "id": "d54f0614-0a9b-49e9-b5eb-84c312278ddd",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "LTX8SDABBsOm6LB8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomamos el texto que soltó el AI Agent\nconst rawOutput = $input.first().json.output;\n\n// Limpiamos las marcas de bloque de código (```json ... ```) \n// que a veces pone la IA y convertimos a un objeto real\nconst cleanData = JSON.parse(rawOutput.replace(/```json|```/g, \"\").trim());\n\n// Formateamos el precio para que sea un número real (quitando comas)\nif (cleanData.precio_total) {\n  cleanData.precio_total = parseFloat(cleanData.precio_total.toString().replace(/,/g, ''));\n}\n\nreturn {\n  json: cleanData\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "775e0e84-c7ee-498a-a942-218e7f788666",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un Analista de Riesgos B2B. Tu objetivo es leer la cotización y extraer estrictamente las condiciones comerciales en formato JSON puro.\n\nReglas:\n\n1. Extrae estas 3 claves: condicion_pago (ej. 100% Adelanto, Crédito 30 días, etc.), tiempo_entrega (ej. 15 días, Inmediato), y garantia.\n\n2. Si el documento no menciona alguno de estos datos, escribe 'No especifica'.\n\n3. Devuelve SOLAMENTE el JSON, sin texto extra.\n\nTexto a procesar:\n{{ $json.markdown }}",
+        "options": {
+          "systemMessage": "Eres un experto contable que solo responde con datos reales encontrados en el texto. Si un dato no existe, respondes null"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        480
+      ],
+      "id": "75aafb76-68ec-4ea4-820d-6795bc6968c5",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        848,
+        656
+      ],
+      "id": "8d40e69d-5e5e-46c2-945b-a2b60ff72f65",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "LTX8SDABBsOm6LB8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1392,
+        176
+      ],
+      "id": "80169c3c-4ea6-453e-8353-d1f7425123b6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtenemos todo el paquete del Merge\nconst datos = $input.item.json;\n\n// 2. Extraemos y limpiamos los textos de las IAs (Ajusta los nombres si tu Merge los llamó distinto)\nconst textoAgente2 = datos.output || \"{}\"; // Ajustar si tienes otra variable para el Agente 2\nconst textoAgente3 = datos.output3 || \"{}\"; // Ajustar si tienes otra variable para el Agente 3\n\n// Convertimos a JSON real (Evitando errores si no encuentra nada)\nlet datosAgente2 = {};\nlet datosAgente3 = {};\ntry { datosAgente2 = JSON.parse(textoAgente2.replace(/```json|```/g, \"\").trim()); } catch (e) {}\ntry { datosAgente3 = JSON.parse(textoAgente3.replace(/```json|```/g, \"\").trim()); } catch (e) {}\n\n// Si tu Merge juntó los JSONs directamente en \"datos\" (sin variable output), usamos \"datos\"\nconst pago = (datos.condicion_pago || datosAgente2.condicion_pago || \"\").toLowerCase();\nconst garantia = (datos.garantia || datosAgente2.garantia || \"\").toLowerCase();\nconst penalidades = (datos.penalidades_retraso || datosAgente3.penalidades_retraso || \"\").toLowerCase();\n\n// 3. MOTOR DE SCORING V2 (Con Riesgo Legal)\nlet puntaje = 100;\n\n// Financiero\nif (pago.includes(\"100%\") || pago.includes(\"adelanto\")) puntaje -= 20; \nelse if (pago.includes(\"crédito\") || pago.includes(\"credito\") || pago.includes(\"días\")) puntaje += 10;\n\n// Comercial\nif (garantia.includes(\"no especifica\") || garantia.includes(\"n/a\") || garantia === \"\") puntaje -= 15;\n\n// Legal / Compliance (NUEVO)\nif (penalidades.includes(\"no especifica\") || penalidades.includes(\"n/a\")) {\n    puntaje -= 10; // Castigo por no aceptar penalidades por retraso\n}\n\n// Clasificamos el nivel de riesgo\nlet nivel_riesgo = \"Bajo\";\nif (puntaje < 70) nivel_riesgo = \"Alto\";\nelse if (puntaje < 90) nivel_riesgo = \"Medio\";\n\n// 4. Entregamos el Paquete Final Completo\nreturn {\n    json: {\n        proveedor: datos.proveedor,\n        ruc: datos.ruc,\n        precio_total: datos.precio_total || datos.monto_total,\n        condicion_pago: pago || \"No especifica\",\n        tiempo_entrega: datos.tiempo_entrega || datosAgente2.tiempo_entrega || \"No especifica\",\n        garantia: garantia || \"No especifica\",\n        validez_oferta: datos.validez_oferta || datosAgente3.validez_oferta || \"No especifica\",\n        penalidades_retraso: penalidades || \"No especifica\",\n        puntaje_ia: puntaje,\n        nivel_riesgo: nivel_riesgo\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        192
+      ],
+      "id": "31c52db9-376e-41e6-b96c-af12ab2b0af2",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Actúa como un Analista Legal B2B. Tu objetivo es leer la cotización y extraer estrictamente las condiciones de validez y penalidades en formato JSON puro.\n\nReglas:\n\n1. Extrae estas 2 claves: validez_oferta (ej. 15 días, 30 días) y penalidades_retraso (ej. 1% por día, No especifica).\n\n2. Si el documento no lo menciona, escribe 'No especifica'.\n\n3. Devuelve SOLAMENTE el JSON, sin texto extra.\n\nTexto a procesar:\n{{ $json.markdown }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        784
+      ],
+      "id": "0fbf24bf-3625-450a-baf8-0ae8f6d6770b",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        848,
+        960
+      ],
+      "id": "c22b4627-e4d9-45a0-b5a0-ba8de87ea0e8",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "LTX8SDABBsOm6LB8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres el Auditor B2B de la empresa. Acabas de recibir esta evaluación de un proveedor:\n{{ $json }}\n\nTu tarea: Redacta un Resumen Gerencial de máximo 3 líneas.\nEmpieza con 'Veredicto: [Aprobar / Revisar con cautela / Rechazar]'.\nLuego, justifica brevemente tu recomendación basándote únicamente en el 'puntaje_ia' y los riesgos encontrados (ej. adelantos, falta de garantía o penalidades). Sé directo y profesional.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1792,
+        192
+      ],
+      "id": "f7faca9b-680a-4d17-92bc-0b290ab5ec64",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        368
+      ],
+      "id": "9a700c20-049d-47d9-9425-8d39d178d50b",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "LTX8SDABBsOm6LB8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un Asistente de Compras B2B. Tu única tarea es leer el asunto y el resumen de un correo electrónico de un proveedor, deducir qué producto o servicio están cotizando, y devolver un nombre de proyecto estandarizado.\n\nAsunto del correo: {{ $('Gmail Trigger').item.json.subject }}\nCuerpo del correo: {{ $('Gmail Trigger').item.json.text }}\n\nReglas estrictas:\n\n1. Ignora palabras basura como 'RV', 'Fwd', 'Cotización', 'Presupuesto', 'Saludos'.\n\n2. Identifica la categoría del producto (Ej: Si mencionan 'Asus', 'HP' o 'Dell', la categoría es 'Equipos de Cómputo'. Si mencionan 'Sillas' o 'Escritorios', es 'Mobiliario').\n\n3. Devuelve ÚNICAMENTE el nombre estandarizado en este formato: 'Compra de [Categoría]'.\n\n4. Máximo 4 palabras. Cero texto adicional.\n\nEjemplo 1: Asunto 'Re: precios laptops Lenovo' -> Salida: Compra de Equipos de Cómputo\nEjemplo 2: Asunto 'Envío lo solicitado' / Cuerpo 'adjunto precios de los servidores' -> Salida: Compra de Servidores",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        1088
+      ],
+      "id": "635c1c05-475b-49e2-bcc1-9ac8a4cf6db4",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        848,
+        1264
+      ],
+      "id": "bd130670-a0f7-4161-bc0d-366b41f08f26",
+      "name": "Groq Chat Model4",
+      "credentials": {
+        "groqApi": {
+          "id": "LTX8SDABBsOm6LB8",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2112,
+        208
+      ],
+      "id": "587bf13f-41b7-49f7-b006-30f30f7e80bb",
+      "name": "Merge1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        []
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        []
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f32cdf7e-064a-49b4-b56b-a1289061645a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca85459beb12c074bced981ba0497bbbadd631ea105dae11aa944663760bb001"
+  },
+  "id": "wi5dtdDDIL21JaEe",
+  "tags": []
+}
